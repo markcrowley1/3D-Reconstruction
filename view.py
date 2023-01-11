@@ -3,6 +3,7 @@ Description:
     Quick viewing test on shapenet models
 """
 
+import numpy as np
 import trimesh
 from trimesh.sample import sample_surface
 import open3d as o3d

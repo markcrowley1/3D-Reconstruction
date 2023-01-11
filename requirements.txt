@@ -1,0 +1,8 @@
+matplotlib
+numpy
+tensorflow
+tensorflow_datasets
+tensorflow_graphics
+trimesh
+open3d
+opencv_python

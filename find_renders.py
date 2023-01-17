@@ -1,5 +1,10 @@
 import os
+import shutil
 import json
+import trimesh
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Location of shapenet dataset - must be downloaded manually
 MANUAL_DIR = "D:\shapenet_base\shapenet_core"
@@ -52,13 +57,40 @@ def main():
             break
 
     ss_dirs = get_screenshot_folders(category_dir)
-    print(ss_dirs[2])
     print(len(ss_dirs))
+    
+    data_dir = "./data"
+    if os.path.exists(data_dir) == False:
+        os.mkdir(data_dir)
 
-    for path in ss_dirs:
-        base_path = os.path.split(path)[0]
-        obj_file_path = get_obj_files(base_path)
-        print(obj_file_path)
+    i = 0
+    for ss_dir in ss_dirs:
+        base_path = os.path.split(ss_dir)[0]
+        model_path = get_obj_files(base_path)[0]
+
+        # Load in .obj as mesh and sample a set of points
+        mesh = trimesh.load(model_path, force="mesh")
+        sample = trimesh.sample.sample_surface(mesh, 1024)
+        sampled_points = sample[0]
+        points = np.array(sampled_points)
+
+        # Save the sampled set of points in pickle files
+        i += 1
+        data_subdir = f"{data_dir}/subdir{i}"
+        if os.path.exists(data_subdir) == False:
+            os.mkdir(data_subdir)
+        with open(f"{data_subdir}/points.pickle", "wb") as file:
+            pickle.dump(points, file)
+        file.close()
+
+        # Save obj file for visual comparison
+        shutil.copy(model_path, data_subdir)
+
+        # Save the screenshot images in subfolder
+        image_folder = f"{data_subdir}/images"
+        if os.path.exists(image_folder):
+            shutil.rmtree(image_folder)
+        shutil.copytree(ss_dir, image_folder)
 
 if __name__ == "__main__":
     main()

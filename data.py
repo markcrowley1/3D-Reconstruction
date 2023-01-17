@@ -1,6 +1,12 @@
 """
 Description:
-    Manipulating shapenet dataset using non tensorflow packages.
+    Script for grouping together training data for specific object categories.
+
+    ShapenetCore Dataset at:
+        https://shapenet.org/download/shapenetcore
+
+    Image Renderings at:
+        http://ftp.cs.stanford.edu/cs/cvgl/ShapeNetRendering.tgz
 """
 
 import os

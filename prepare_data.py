@@ -1,18 +1,28 @@
+"""
+Description:
+    Script for grouping together training data for specific object categories.
+
+    ShapenetCore Dataset at:
+        https://shapenet.org/download/shapenetcore
+
+    Image Renderings at:
+        http://ftp.cs.stanford.edu/cs/cvgl/ShapeNetRendering.tgz
+"""
+
 import os
 import shutil
 import json
 import trimesh
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
 
-# Location of shapenet dataset - must be downloaded manually
-MANUAL_DIR = "D:\shapenet_base\shapenet_core"
-# Set of object categories to be gathered for training
 OBJ_LABELS = ["airplane,aeroplane,plane"]
+MANUAL_DIR = "D:\shapenet_base\shapenet_core"
+
+SAMPLES = 1024*10
 
 def get_screenshot_folders(dir: str, num_models: int = 10) -> list:
-    """Return paths of screenshot subdirs within a list"""
+    """Recursive function to return paths of screenshot subdirs."""
     ss_dir = []
     for name in os.listdir(dir):
         if len(ss_dir) >= num_models:
@@ -70,7 +80,7 @@ def main():
 
         # Load in .obj as mesh and sample a set of points
         mesh = trimesh.load(model_path, force="mesh")
-        sample = trimesh.sample.sample_surface(mesh, 1024)
+        sample = trimesh.sample.sample_surface(mesh, SAMPLES)
         sampled_points = sample[0]
         points = np.array(sampled_points)
 
@@ -87,7 +97,7 @@ def main():
         shutil.copy(model_path, data_subdir)
 
         # Save the screenshot images in subfolder
-        image_folder = f"{data_subdir}/images"
+        image_folder = f"{data_subdir}/screenshots"
         if os.path.exists(image_folder):
             shutil.rmtree(image_folder)
         shutil.copytree(ss_dir, image_folder)

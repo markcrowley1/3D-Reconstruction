@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 def visualise_points(points):
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(points[:,0], points[:,1], points[:,2], s=100)
+    ax.scatter(points[:,0], points[:,1], points[:,2], s=10)
     ax.set_axis_off()
     plt.show()
 
@@ -17,6 +17,8 @@ def main():
     with open(filename, "rb") as file:
         points = pickle.load(file)
     file.close()
+    print(points)
+    print(type(points))
     visualise_points(points)
 
 if __name__ == "__main__":

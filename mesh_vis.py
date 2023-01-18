@@ -13,7 +13,7 @@ def main():
     # Get name of pickle file containing point cloud
     filename = sys.argv[1]
     # Load and display saved point cloud as test
-    scene = trimesh.load(filename, force="mesh")
+    scene = trimesh.load(filename, force="scene")
     scene.show()
 
 if __name__ == "__main__":

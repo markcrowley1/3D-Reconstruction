@@ -75,10 +75,10 @@ def build_model():
 
 def main():
     """Load training data"""
-    data_dir = "./data/subdir2"
-    training_data = load_images(data_dir)
-    target_data = load_point_cloud(data_dir)
-    print(target_data.shape)
+    # data_dir = "./data/subdir2"
+    # training_data = load_images(data_dir)
+    # target_data = load_point_cloud(data_dir)
+    # print(target_data.shape)
 
     """Build Model"""
     model: models.Sequential = build_model()
@@ -87,7 +87,6 @@ def main():
     # model.fit(training_data, target_data, epochs=EPOCHS)
 
     """Test Model"""
-
 
     """Save Model"""
     # model.save("Basic_PSG")

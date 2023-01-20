@@ -1,6 +1,7 @@
 
 import sys
 import pickle
+import numpy as np
 import matplotlib.pyplot as plt
 
 def visualise_points(points):
@@ -12,14 +13,18 @@ def visualise_points(points):
 
 def main():
     # Get name of pickle file containing point cloud
-    filename = sys.argv[1]
     # Load and display saved point cloud as test
-    with open(filename, "rb") as file:
-        points = pickle.load(file)
+    filename = sys.argv[1]
+    file = open(filename, "rb")
+    points = np.array(pickle.load(file))
     file.close()
-    print(points)
+
     print(type(points))
-    visualise_points(points)
+    print(points.shape)
+    for pc in points:
+        print(type(pc))
+        print(pc.shape)
+        visualise_points(pc)
 
 if __name__ == "__main__":
     main()

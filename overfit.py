@@ -3,12 +3,13 @@ Description:
     Create model and overfit to data to verify network architecture.
 """
 
+import json
 import pickle
 import numpy as np
 from keras import layers, models
 from tensorflow_graphics.nn import loss
 
-EPOCHS = 30
+EPOCHS = 300
 BATCH_SIZE = 7
 POINTS = 256
 
@@ -30,7 +31,7 @@ def load_point_cloud(filename: str) -> np.ndarray:
 
 def main():
     """Load Data"""
-    images = load_images("data/images.pickle")
+    images = load_images("data/images.pickle")[0:]
     gt_point_sets = load_point_cloud("data/points.pickle")
 
     """Create Model"""
@@ -59,13 +60,17 @@ def main():
         metrics=["accuracy"]
     )
 
-    model.fit(images, gt_point_sets, epochs=EPOCHS)
-    model.save("overfit_psg.keras")
+    history = model.fit(images, gt_point_sets, epochs=EPOCHS)
+    model.save("saved_model")
 
+    images = load_images("data/images.pickle")[1:]
     output = model.predict(images)
     pickle_out = open("nn_output.pickle", "wb")
     pickle.dump(output, pickle_out)
     pickle_out.close()
+
+    with open('trainHistoryDict.pickle', 'wb') as file_pi:
+        pickle.dump(history.history, file_pi)
 
 if __name__ == "__main__":
     main()

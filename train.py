@@ -3,67 +3,56 @@ Description:
     Script for creating graph, training and testing network.
 """
 
-import os
+import json
 import pickle
 import numpy as np
-import tensorflow as tf
-import tensorflow_graphics as tfg
+from keras import layers, models
 from tensorflow_graphics.nn import loss
-from keras import layers, models, utils, preprocessing
 
-EPOCHS = 28
+EPOCHS = 10
 BATCH_SIZE = 14
+POINTS = 256
 
-IMG_HEIGHT = 512
-IMG_WIDTH = 512
-OUTPUT_POINTS = 1024
-GT_POINTS = OUTPUT_POINTS*10
-
-def np_images(data_dir: str):
-    return
-
-def load_images(data_dir: str):
-    dataset = utils.image_dataset_from_directory(
-    data_dir, batch_size=1, image_size=(IMG_HEIGHT, IMG_WIDTH), labels=None)
-
-    
-    size = (256, 256)
-    dataset = dataset.map(lambda img: tf.image.resize(dataset, size))
-
-    normalization_layer = layers.Rescaling(1./255)
-    normalized_ds = dataset.map(lambda x: (normalization_layer(x)))
-    image_batch = next(iter(normalized_ds))
-
-    return image_batch
-
-def load_point_cloud(data_dir: str) -> np.ndarray:
-    filename = "points.pickle"
-    pc_path = os.path.join(data_dir, filename)
-    with open(pc_path, "rb") as file:
-        points = pickle.load(file)
+def load_images(filename: str) -> np.ndarray:
+    # Load in images
+    file = open(filename, "rb")
+    imgs = np.array(pickle.load(file))
     file.close()
+    # Normalise images
+    imgs = imgs/255.0
+    return imgs
 
-    return points
+def load_point_cloud(filename: str) -> np.ndarray:
+    # Load in point clouds
+    file = open(filename, "rb")
+    point_sets = np.array(pickle.load(file))
+    file.close()
+    return point_sets
 
-def build_model():
-    # Build graph
+def main():
+    """Load Data"""
+    images = load_images("data/images.pickle")[0:]
+    gt_point_sets = load_point_cloud("data/points.pickle")
+
+    """Create Model"""
     model = models.Sequential()
 
-    # Add convolution layers
-    model.add(layers.Conv2D(16, 3, activation="relu", input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)))
-    model.add(layers.Conv2D(16, 3, activation="relu"))
-    model.add(layers.Conv2D(16, 3, activation="relu"))
+    # Add Convolutional Layers
+    model.add(layers.Conv2D(16, (3,3), activation="relu", input_shape=images.shape[1:]))
+    model.add(layers.Conv2D(16, (3,3), activation="relu"))
+    model.add(layers.Conv2D(16, (3,3), activation="relu"))
 
-    # Add fully connected layer
+    # Add Fully Connected Layer
     model.add(layers.Flatten())
     model.add(layers.Dense(32))
+    model.add(layers.Dense(POINTS*3))
 
-    # Reshape to give point cloud coordinates
-    model.add(layers.Reshape((2,4,4)))
+    # Reshape to required output
+    model.add(layers.Reshape((POINTS,3)))
 
     model.summary()
-    
-    # Loss function - chamfer distance between estimated and gt point cloud
+
+    # Implement chamfer distance loss function and compile model
     loss_function = loss.chamfer_distance.evaluate
     model.compile(
         optimizer="adam",
@@ -71,26 +60,8 @@ def build_model():
         metrics=["accuracy"]
     )
 
-    return model
-
-def main():
-    """Load training data"""
-    # data_dir = "./data/subdir2"
-    # training_data = load_images(data_dir)
-    # target_data = load_point_cloud(data_dir)
-    # print(target_data.shape)
-
-    """Build Model"""
-    model: models.Sequential = build_model()
-    print(model.output_shape)
-    """Train Model"""
-    # model.fit(training_data, target_data, epochs=EPOCHS)
-
-    """Test Model"""
-
-    """Save Model"""
-    # model.save("Basic_PSG")
-    
+    model.fit(images, gt_point_sets, epochs=EPOCHS, validation_split=0.2)
+    model.save("saved_model")
 
 if __name__ == "__main__":
     main()

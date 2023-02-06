@@ -38,7 +38,7 @@ def main():
         model_name,
         custom_objects={'evaluate': loss.chamfer_distance.evaluate}
     )
-    output = model.predict(images[1:])
+    output = model.predict(images)
 
     if not os.path.isdir("./output"):
         os.mkdir("output")

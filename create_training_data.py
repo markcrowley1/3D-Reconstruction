@@ -139,19 +139,19 @@ def main():
     if not os.path.isdir("./data"):
         os.mkdir("data")
 
-    pickle_out = open("./data/training_images.pickle", "wb")
+    pickle_out = open("./data/train_imgs.pickle", "wb")
     pickle.dump(training_images, pickle_out)
     pickle_out.close()
 
-    pickle_out = open("./data/test_images.pickle", "wb")
+    pickle_out = open("./data/test_imgs.pickle", "wb")
     pickle.dump(test_images, pickle_out)
     pickle_out.close()
 
-    pickle_out = open("./data/training_point_sets.pickle", "wb")
+    pickle_out = open("./data/train_pnts.pickle", "wb")
     pickle.dump(training_ps, pickle_out)
     pickle_out.close()
 
-    pickle_out = open("./data/test_point_sets.pickle", "wb")
+    pickle_out = open("./data/test_pnts.pickle", "wb")
     pickle.dump(test_ps, pickle_out)
     pickle_out.close()
 

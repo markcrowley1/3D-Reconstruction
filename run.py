@@ -1,13 +1,24 @@
 """
 Description:
-    Run inference on image specified as argument.
+    Run inference on set of images loaded from pickle file.
 """
 
+import os
 import sys
 import pickle
+import argparse
 import numpy as np
 from keras import models
 from tensorflow_graphics.nn import loss
+
+def define_and_parse_args():
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("-m", "--model", type=str, required=True)
+    argparser.add_argument("-img", "--images", type=str, default="data/test_imgs.pickle")
+    argparser.add_argument("-o", "--output", type=str, default="output/nn_output.pickle")
+    args = argparser.parse_args()
+    parsed_args = [args.model, args.images, args.output]
+    return parsed_args
 
 def load_images(filename: str) -> np.ndarray:
     # Load in images
@@ -19,16 +30,19 @@ def load_images(filename: str) -> np.ndarray:
     return imgs
 
 def main():
-    filename = sys.argv[1]
-    images = load_images(filename)
+    args = define_and_parse_args()
+    model_name, img_file, out_file = args
+    images = load_images(img_file)
     
     model: models.Sequential = models.load_model(
-        "overfit_psg.keras",
+        model_name,
         custom_objects={'evaluate': loss.chamfer_distance.evaluate}
     )
     output = model.predict(images[1:])
 
-    pickle_out = open("unseen_output.pickle", "wb")
+    if not os.path.isdir("./output"):
+        os.mkdir("output")
+    pickle_out = open(out_file, "wb")
     pickle.dump(output, pickle_out)
     pickle_out.close()
 

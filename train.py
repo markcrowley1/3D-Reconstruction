@@ -21,10 +21,12 @@ def define_and_parse_args():
     argparser.add_argument("--test_imgs", type=str, default="data/test_imgs.pickle")
     argparser.add_argument("--train_pnts", type=str, default="data/train_pnts.pickle")
     argparser.add_argument("--test_pnts", type=str, default="data/test_pnts.pickle")
+    argparser.add_argument("--test_output", type=str, default="output/nn_output.pickle")
     args = argparser.parse_args()
     imgs = [args.train_imgs, args.test_imgs]
     pnts = [args.train_pnts, args.test_pnts]
-    return imgs, pnts
+    output = args.test_output
+    return imgs, pnts, output
 
 def load_images(filename: str) -> np.ndarray:
     # Load in images
@@ -44,14 +46,14 @@ def load_point_cloud(filename: str) -> np.ndarray:
 
 def gen_model_name() -> str:
     if not os.path.isdir("models"):
-        os.mkdir(models)
+        os.mkdir("models")
     default = "models/cnn_"
     date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     return default + date_time
 
 def main():
     """Load Data"""
-    imgs, pnts = define_and_parse_args()
+    imgs, pnts, out_file = define_and_parse_args()
     train_imgs_file, test_imgs_file = imgs
     train_pnts_file, test_pnts_file = pnts
 
@@ -90,6 +92,13 @@ def main():
     model.fit(train_imgs, train_pnts, epochs=EPOCHS, validation_split=0)
     val_loss, val_accuracy = model.evaluate(test_imgs, test_pnts)
     print(val_loss, val_accuracy)
+
+    output = model.predict(test_imgs)
+    if not os.path.isdir("./output"):
+        os.mkdir("output")
+    pickle_out = open(out_file, "wb")
+    pickle.dump(output, pickle_out)
+    pickle_out.close()
 
     model.save(gen_model_name())
 

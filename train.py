@@ -11,7 +11,7 @@ import numpy as np
 from keras import layers, models
 from tensorflow_graphics.nn import loss
 
-EPOCHS = 10
+EPOCHS = 20
 BATCH_SIZE = 24
 POINTS = 512
 

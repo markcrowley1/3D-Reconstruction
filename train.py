@@ -60,7 +60,7 @@ def main():
         metrics=["accuracy"]
     )
 
-    model.fit(images, gt_point_sets, epochs=EPOCHS, validation_split=0.2)
+    model.fit(images, gt_point_sets, epochs=EPOCHS, validation_split=0)
     model.save("saved_model")
 
 if __name__ == "__main__":

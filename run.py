@@ -15,7 +15,7 @@ def define_and_parse_args():
     argparser = argparse.ArgumentParser()
     argparser.add_argument("-m", "--model", type=str, required=True)
     argparser.add_argument("-img", "--images", type=str, default="data/test_imgs.pickle")
-    argparser.add_argument("-o", "--output", type=str, default="output/nn_output.pickle")
+    argparser.add_argument("-o", "--output", type=str, default="output/nn_output_run.pickle")
     args = argparser.parse_args()
     parsed_args = [args.model, args.images, args.output]
     return parsed_args

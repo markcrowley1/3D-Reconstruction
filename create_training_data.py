@@ -18,8 +18,8 @@ from scipy.spatial.transform import Rotation
 SHAPENETCORE = "D:/shapenet_base/shapenet_core"
 RENDERINGS = "D:/ShapeNetRendering/ShapeNetRendering"
 
-IMG_SIZE = 64
-POINTS = 512
+IMG_SIZE = 112
+POINTS = 1024
 
 def define_and_parse_args():
     argparser = argparse.ArgumentParser()

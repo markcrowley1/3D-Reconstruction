@@ -29,7 +29,7 @@ def visualise_data(img: np.ndarray, points: np.ndarray):
     ax.scatter(points[:,0], points[:,1], points[:,2], s=10, c="red")
     ax.set_axis_on()
     ax.set_aspect("equal")
-    ax.set_title("Ground Truth Point Cloud")
+    ax.set_title("Point Cloud")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("z")
@@ -54,7 +54,6 @@ def main():
     file.close()
 
     print(len(imgs), len(point_sets))
-
     for i in range(len(imgs)):
         visualise_data(imgs[i], point_sets[i])
 

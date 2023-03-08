@@ -7,8 +7,8 @@ import pickle
 import trimesh
 import argparse
 import numpy as np
-import open3d as o3d
 import matplotlib.pyplot as plt
+from scipy.spatial import Delaunay
 
 def define_and_parse_args():
     argparser = argparse.ArgumentParser()
@@ -35,25 +35,13 @@ def main():
     point_sets = load_point_cloud(arg)
 
     for point_set in point_sets:
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(point_set)
-        pcd.estimate_normals()
-
-        distances = pcd.compute_nearest_neighbor_distance()
-        avg_dist = np.mean(distances)
-        print(avg_dist)
-        radius = 1.5 * avg_dist   
-        radii = [0.005, 0.01, 0.015, 0.02, 0.1]
-
-        # mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(pcd, o3d.utility.DoubleVector(radii))
-        mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(pcd, 0.07)
-        mesh = trimesh.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.triangles), vertex_normals=np.asarray(mesh.vertex_normals))
-
-        print(point_set.shape)
-        visualise_points(point_set)
-        mesh.fix_normals()
-        trimesh.smoothing.filter_humphrey(mesh=mesh)
-        mesh.show()
+        break
+    pnts = point_sets[1]
+    tri = Delaunay(point_set)
+    simplex = tri.simplices
+    faces = [simplex[0]+1, simplex[1]+1, simplex[2]+1]
+    mesh = trimesh.Trimesh(pnts, faces)
+    mesh.show()
         
 if __name__ == "__main__":
     main()

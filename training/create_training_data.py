@@ -64,7 +64,7 @@ def main():
     category, training_split, count = (args["category"], args["train_split"],
                                        args["num"])
     # Read taxonomy data
-    file = open("labels.json", "r")
+    file = open("category_info.json", "r")
     taxonomy = json.load(file)
     file.close()
     num_instances: dict = taxonomy["numInstances"]

@@ -11,28 +11,10 @@ import json
 import pickle
 import random
 import trimesh
-import argparse
 import numpy as np
+import open3d as o3d
 from scipy.spatial.transform import Rotation
-
-SHAPENETCORE = "D:/shapenet_base/shapenet_core"
-RENDERINGS = "D:/ShapeNetRendering/ShapeNetRendering"
-
-IMG_SIZE = 112
-POINTS = 1024
-
-def define_and_parse_args():
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument("-c", type=str, default="airplane,aeroplane,plane")
-    argparser.add_argument("-ts", type=float, default=0.8)
-    argparser.add_argument("-n", type=int, default=10)
-    args = argparser.parse_args()
-    if args.ts > 1 or args.ts <= 0:
-        exit("Training split arg not valid - must be between 0 and 1")
-    if args.n <= 0:
-        exit("Number of training instances must be positive integer")
-    parsed_args = {"category": args.c, "train_split": args.ts, "num": args.n}
-    return parsed_args
+from settings import *
 
 def read_metadata(dir: str) -> list[tuple]:
     """Return each img file with elevation and azimuth"""
@@ -58,74 +40,51 @@ def rotate(points: np.ndarray, rotation: list) -> np.ndarray:
     points = np.matmul(points, r)
     return points
 
-def main():
-    # Read args - object category, train/test split and number of instances
-    args = define_and_parse_args()
-    category, training_split, count = (args["category"], args["train_split"],
-                                       args["num"])
+def parse_category_info(
+        categories: list, 
+        count: int, 
+        taxonomy_file: str
+    ) -> list[tuple]:
+    """Gather info for selected categories and return as list"""
+    output = []
     # Read taxonomy data
-    file = open("category_info.json", "r")
+    file = open(taxonomy_file, "r")
     taxonomy = json.load(file)
     file.close()
-    num_instances: dict = taxonomy["numInstances"]
     ids: dict = taxonomy["synsetIds"]
-    
-    # Input error checking
-    if category not in ids.keys():
-        print(f"{category} is not a base category of objects. Try one of:")
-        print(list(ids.keys()))
-        exit()
+    num_instances: dict = taxonomy["numInstances"]
+    # Get data for each selected category
+    for category in categories:
+        # Input error checking for each category
+        if category not in ids.keys():
+            print(f"{category} is not a base category of objects. Try one of:")
+            print(list(ids.keys()))
+            exit()
+        if count > int(num_instances[category]):
+            count = num_instances[category]
+            print(f"Count exceeds numInstances, proceeding with {count} instances")
 
-    if count > int(num_instances[category]):
-        count = num_instances[category]
-        print(f"Count exceeds numInstances, proceeding with {count} instances")
+        # Set base dirs for object category
+        render_base_dir = f"{RENDERINGS}/{ids[category]}"
+        model_base_dir = f"{SHAPENETCORE}/{ids[category]}"
+        # Check for missing data dirs
+        if not os.path.isdir(render_base_dir):
+            exit(f"Exiting. Could not find {category} renderings directory.")
+        if not os.path.isdir(model_base_dir):
+            exit(f"Exiting. Could not find {category} models directory.")
+    	# Group category data
+        output.append((count, render_base_dir, model_base_dir))
+    return output
 
-    # Check for missing data dirs
-    render_base_dir = f"{RENDERINGS}/{ids[category]}"
-    model_base_dir = f"{SHAPENETCORE}/{ids[category]}"
-
-    if not os.path.isdir(render_base_dir):
-        exit(f"Exiting. Could not find {category} renderings directory.")
-
-    if not os.path.isdir(model_base_dir):
-        exit(f"Exiting. Could not find {category} models directory.")
-
-    # Loop through each rendering dir and match with model dir
-    paired_data = []
-    dir_names = os.listdir(render_base_dir)
-    random.shuffle(dir_names)
-    dir_names = dir_names[:count]
-    
-    for dir_name in dir_names:
-        # Handle paths
-        render_dir = f"{render_base_dir}/{dir_name}/rendering"
-        model_filename = f"{model_base_dir}/{dir_name}/models/model_normalized.obj"
-
-        # Sample the 3d mesh and orient to base position
-        mesh = trimesh.load(model_filename, force="mesh")
-        sample = trimesh.sample.sample_surface(mesh, POINTS)
-        sampled_points = sample[0]
-        points = np.array(sampled_points)
-        base_points = rotate(points, [-90, 90, 0])
-
-        # Get orientation information and apply to corresponding point clouds
-        metadata = read_metadata(render_dir)
-        for data in metadata:
-            img_filename = f"{render_dir}/{data[0]}"
-            img_array = cv2.imread(img_filename, cv2.IMREAD_GRAYSCALE)
-            img_array = cv2.resize(img_array, (IMG_SIZE,IMG_SIZE))
-
-            rotation = [0, -data[1], -data[2]]
-            points = rotate(base_points, rotation)
-            paired_data.append([img_array, points])
-
+def save_data(data, training_split: float, dir: str):
+    """Seperate data into training and test splits and save."""
     # Shuffle pairs of training data
     imgs = []
     point_sets = []
-    random.shuffle(paired_data)
+    random.shuffle(data)
 
     # Seperate images and point clouds for storage in memory
-    for img, point_set in paired_data:
+    for img, point_set in data:
         imgs.append(img)
         point_sets.append(point_set)
     imgs = np.array(imgs).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
@@ -139,22 +98,62 @@ def main():
     if not os.path.isdir("./data"):
         os.mkdir("data")
 
-    pickle_out = open("./data/train_imgs.pickle", "wb")
+    pickle_out = open(f"{dir}/train_imgs.pickle", "wb")
     pickle.dump(training_images, pickle_out)
     pickle_out.close()
 
-    pickle_out = open("./data/test_imgs.pickle", "wb")
+    pickle_out = open(f"{dir}/test_imgs.pickle", "wb")
     pickle.dump(test_images, pickle_out)
     pickle_out.close()
 
-    pickle_out = open("./data/train_pnts.pickle", "wb")
+    pickle_out = open(f"{dir}/train_pnts.pickle", "wb")
     pickle.dump(training_ps, pickle_out)
     pickle_out.close()
 
-    pickle_out = open("./data/test_pnts.pickle", "wb")
+    pickle_out = open(f"{dir}/test_pnts.pickle", "wb")
     pickle.dump(test_ps, pickle_out)
     pickle_out.close()
 
+def main():
+    # Get info for categories to generate data for
+    category_info = parse_category_info(CATEGORIES, COUNT,
+                                        "./training/category_info.json")
+    paired_data = []
+    for cat_info in category_info:
+        # Unpack info for specific category
+        count, render_base_dir, model_base_dir = cat_info
+        # Get names of subdirs containing models and randomly select COUNT models
+        dir_names = os.listdir(render_base_dir)
+        random.shuffle(dir_names)
+        dir_names = dir_names[:count]
+        
+        for dir_name in dir_names:
+            # Handle paths
+            render_dir = f"{render_base_dir}/{dir_name}/rendering"
+            model_filename = f"{model_base_dir}/{dir_name}/models/model_normalized.obj"
+
+            # Sample the 3d mesh and orient to base position
+            try:
+                mesh = o3d.io.read_triangle_mesh(model_filename)
+                pcd = mesh.sample_points_poisson_disk(number_of_points=POINTS, init_factor=5)
+                points = np.asarray(pcd.points)
+                base_points = rotate(points, [-90, 90, 0])
+
+                # Get orientation information and apply to corresponding point clouds
+                metadata = read_metadata(render_dir)
+                for data in metadata:
+                    img_filename = f"{render_dir}/{data[0]}"
+                    img_array = cv2.imread(img_filename, cv2.IMREAD_GRAYSCALE)
+                    img_array = cv2.resize(img_array, (IMG_SIZE,IMG_SIZE))
+
+                    rotation = [0, -data[1], -data[2]]
+                    points = rotate(base_points, rotation)
+                    paired_data.append([img_array, points])
+            except:
+                pass
+
+    # Split train and test data and save in pickle same dir
+    save_data(paired_data, TRAINING_SPLIT, OUT_DIR)
 
 if __name__ == "__main__":
     main()

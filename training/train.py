@@ -10,10 +10,7 @@ import datetime
 import numpy as np
 from keras import layers, models
 from tensorflow_graphics.nn import loss
-
-EPOCHS = 20
-BATCH_SIZE = 24
-POINTS = 512
+from settings import *
 
 def define_and_parse_args():
     argparser = argparse.ArgumentParser()
@@ -97,7 +94,7 @@ def main():
         metrics=["accuracy"]
     )
 
-    model.fit(train_imgs, train_pnts, epochs=EPOCHS, validation_split=0)
+    model.fit(train_imgs, train_pnts, epochs=EPOCHS, validation_split=0.1)
     val_loss, val_accuracy = model.evaluate(test_imgs, test_pnts)
     print(val_loss, val_accuracy)
 

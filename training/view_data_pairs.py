@@ -26,7 +26,7 @@ def visualise_data(img: np.ndarray, points: np.ndarray):
 
     # Show corresponding ground truth 3d point cloud
     ax = fig.add_subplot(1, 2, 2, projection="3d")
-    ax.scatter(points[:,0], points[:,1], points[:,2], s=10, c="red")
+    ax.scatter(points[:,0], points[:,1], points[:,2], s=5, c="red")
     ax.set_axis_on()
     ax.set_aspect("equal")
     ax.set_title("Point Cloud")

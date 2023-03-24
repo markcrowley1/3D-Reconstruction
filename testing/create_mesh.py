@@ -105,7 +105,7 @@ def main():
         mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(pcd, 0.07)
         mesh = trimesh.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.triangles), vertex_normals=np.asarray(mesh.vertex_normals))
         visualise_points(point_set)
-        # mesh.fix_normals()
+        mesh.fix_normals()
         trimesh.smoothing.filter_humphrey(mesh=mesh)
         mesh.show()
         write_obj_file_with_texture_and_mtl("test.obj", mesh.vertices, mesh.faces, mesh.vertex_normals, [], "texture2.jpg")

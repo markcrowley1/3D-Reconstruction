@@ -11,6 +11,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from source.PSG import PSG
 
+def define_and_parse_args():
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("-img", type=str, required=True)
+    argparser.add_argument(
+        "-ot",
+        "--output_type",
+        choices=["mesh", "psg", "textured_mesh"],
+        default="mesh"
+    )
+    args = argparser.parse_args()
+    return args.img, args.ot
+
 def visualise_points(points):
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(111, projection="3d")

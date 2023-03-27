@@ -2,4 +2,5 @@ data
 output
 models
 500-planes
+10cat-200each
 __pycache__

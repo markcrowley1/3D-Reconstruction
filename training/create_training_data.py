@@ -95,8 +95,8 @@ def save_data(data, training_split: float, dir: str):
     training_ps, test_ps = point_sets[:split_index], point_sets[split_index:]
 
     # Save data
-    if not os.path.isdir("./data"):
-        os.mkdir("data")
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
 
     pickle_out = open(f"{dir}/train_imgs.pickle", "wb")
     pickle.dump(training_images, pickle_out)

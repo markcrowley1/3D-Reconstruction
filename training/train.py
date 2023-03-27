@@ -8,20 +8,17 @@ import pickle
 import argparse
 import datetime
 import numpy as np
-from keras import layers, models
+from keras import layers, models, callbacks, regularizers
 from tensorflow_graphics.nn import loss
 from settings import *
 
 def define_and_parse_args():
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--train_imgs", type=str, default="data/train_imgs.pickle")
-    argparser.add_argument("--test_imgs", type=str, default="data/test_imgs.pickle")
-    argparser.add_argument("--train_pnts", type=str, default="data/train_pnts.pickle")
-    argparser.add_argument("--test_pnts", type=str, default="data/test_pnts.pickle")
+    argparser.add_argument("--data", type=str, default="data")
     argparser.add_argument("--test_output", type=str, default="output/nn_output.pickle")
     args = argparser.parse_args()
-    imgs = [args.train_imgs, args.test_imgs]
-    pnts = [args.train_pnts, args.test_pnts]
+    imgs = [f"{args.data}/train_imgs.pickle", f"{args.data}/test_imgs.pickle"]
+    pnts = [f"{args.data}/train_pnts.pickle", f"{args.data}/test_pnts.pickle"]
     output = args.test_output
     return imgs, pnts, output
 
@@ -64,21 +61,23 @@ def main():
     model = models.Sequential()
 
     # Add Convolutional Layers
-    model.add(layers.Conv2D(16, (3,3), activation="relu", input_shape=train_imgs.shape[1:]))
-    model.add(layers.Conv2D(16, (3,3), activation="relu"))
-    model.add(layers.Conv2D(16, (3,3), activation="relu"))
+    model.add(layers.Conv2D(16, (3,3), activation="relu", input_shape=train_imgs.shape[1:],
+                            kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(16, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(16, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
     
-    model.add(layers.Conv2D(32, (3,3), activation="relu"))
-    model.add(layers.Conv2D(32, (3,3), activation="relu"))
-    model.add(layers.Conv2D(32, (3,3), activation="relu"))
+    model.add(layers.Conv2D(32, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(32, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(32, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
 
-    model.add(layers.Conv2D(64, (3,3), activation="relu"))
-    model.add(layers.Conv2D(64, (3,3), activation="relu"))
-    model.add(layers.Conv2D(64, (3,3), activation="relu"))
+    model.add(layers.Conv2D(64, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(64, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(64, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
 
     # Add Fully Connected Layer
     model.add(layers.Flatten())
     model.add(layers.Dense(64))
+    model.add(layers.Dropout(0.2))
     model.add(layers.Dense(POINTS*3))
 
     # Reshape to required output
@@ -94,7 +93,11 @@ def main():
         metrics=["accuracy"]
     )
 
-    model.fit(train_imgs, train_pnts, epochs=EPOCHS, validation_split=0.1)
+    # Add early stopping to reduce overfitting
+    my_callbacks = [callbacks.EarlyStopping(patience=3)]
+
+    model.fit(train_imgs, train_pnts, epochs=EPOCHS, validation_split=0.1,
+              callbacks=my_callbacks)
     val_loss, val_accuracy = model.evaluate(test_imgs, test_pnts)
     print(val_loss, val_accuracy)
 

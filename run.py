@@ -9,32 +9,37 @@ import pickle
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from source.PSG import PSG
+from source import MESH, PSG, TEXGEN, VIS
 
 def define_and_parse_args():
     argparser = argparse.ArgumentParser()
     argparser.add_argument("-img", type=str, required=True)
-    argparser.add_argument(
-        "-ot",
-        "--output_type",
-        choices=["mesh", "psg", "textured_mesh"],
-        default="mesh"
-    )
+    argparser.add_argument("-o", type=str, default="./mesh")
     args = argparser.parse_args()
-    return args.img, args.ot
-
-def visualise_points(points):
-    fig = plt.figure(figsize=(5, 5))
-    ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(points[:,0], points[:,1], points[:,2], s=10)
-    ax.set_axis_off()
-    plt.show()
+    return args.img, args.o
 
 def main():
-    img = "D:/ShapeNetRendering/ShapeNetRendering/02691156/1a888c2c86248bbcf2b0736dd4d8afe0/rendering/02.png"
-    psg = PSG("./models/large_model_1")
-    point_set = psg.generate_pointset(img)
-    visualise_points(point_set)
+    # Get arguments
+    img, outdir = define_and_parse_args()
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
+    # Load classes that handle nn, mesh, texture and visualisation
+    psg = PSG("models/planes-o3d-500m-1024p-20e")
+    mesh_handler = MESH()   
+    tex_handler = TEXGEN()
+    visualiser = VIS()
+    # Process image and save results
+    point_set: np.ndarray = psg.generate_pointset(img)
+    mesh = mesh_handler.create_mesh(point_set)
+    mesh = mesh_handler.process_mesh(mesh, 0, 0, 50)
+    mesh_handler.save_mesh(mesh, "texture.png", outdir)
+
+    img_array = tex_handler.read_img(img)
+    texture = tex_handler.generate_texture(img_array)
+    tex_handler.save_texture(texture, f"{outdir}/texture.png")
+
+    # Visualisation
+    visualiser.visualise_prediction(img_array, point_set)
 
 if __name__ == "__main__":
     main()

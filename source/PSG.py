@@ -7,7 +7,7 @@ import numpy as np
 from keras import models
 from tensorflow_graphics.nn import loss
 
-class PSG():
+class PSG:
     def __init__(self, model: str):
         """ Load model """
         self.model: models.Sequential = models.load_model(

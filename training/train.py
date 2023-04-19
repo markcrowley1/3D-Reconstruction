@@ -61,23 +61,23 @@ def main():
     model = models.Sequential()
 
     # Add Convolutional Layers
-    model.add(layers.Conv2D(16, (3,3), activation="relu", input_shape=train_imgs.shape[1:],
-                            kernel_regularizer=regularizers.L2(1e-6)))
-    model.add(layers.Conv2D(16, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
-    model.add(layers.Conv2D(16, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(16, (3,3), activation="relu", input_shape=train_imgs.shape[1:]))
+    model.add(layers.Conv2D(16, (3,3), activation="relu"))
+    model.add(layers.Conv2D(16, (3,3), activation="relu"))
     
-    model.add(layers.Conv2D(32, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
-    model.add(layers.Conv2D(32, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
-    model.add(layers.Conv2D(32, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(32, (3,3), activation="relu"))
+    model.add(layers.Conv2D(32, (3,3), activation="relu"))
+    model.add(layers.Conv2D(32, (3,3), activation="relu"))
 
-    model.add(layers.Conv2D(64, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
-    model.add(layers.Conv2D(64, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
-    model.add(layers.Conv2D(64, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
+    model.add(layers.Conv2D(64, (3,3), activation="relu"))
+    model.add(layers.Conv2D(64, (3,3), activation="relu"))
+    model.add(layers.Conv2D(64, (3,3), activation="relu"))
+    # model.add(layers.Conv2D(64, (3,3), activation="relu", kernel_regularizer=regularizers.L2(1e-6)))
 
     # Add Fully Connected Layer
     model.add(layers.Flatten())
     model.add(layers.Dense(64))
-    model.add(layers.Dropout(0.2))
+    # model.add(layers.Dropout(0.2))
     model.add(layers.Dense(POINTS*3))
 
     # Reshape to required output
@@ -94,13 +94,13 @@ def main():
     )
 
     # Add early stopping to reduce overfitting
-    my_callbacks = [callbacks.EarlyStopping(patience=3)]
+    # my_callbacks = [callbacks.EarlyStopping(patience=3)]
 
-    model.fit(train_imgs, train_pnts, epochs=EPOCHS, validation_split=0.1,
-              callbacks=my_callbacks)
+    history = model.fit(train_imgs, train_pnts, epochs=EPOCHS,
+                        validation_split=0.1, callbacks=None)
     val_loss, val_accuracy = model.evaluate(test_imgs, test_pnts)
     print(val_loss, val_accuracy)
-
+    
     output = model.predict(test_imgs)
     if not os.path.isdir("./output"):
         os.mkdir("output")
@@ -108,7 +108,11 @@ def main():
     pickle.dump(output, pickle_out)
     pickle_out.close()
 
-    model.save(gen_model_name())
+    name = gen_model_name()
+    model.save(name)
+    with open(f'{name}_history.pickle', 'wb') as file_pi:
+        pickle.dump(history.history, file_pi)
+
 
 if __name__ == "__main__":
     main()

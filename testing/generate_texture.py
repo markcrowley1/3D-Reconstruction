@@ -33,7 +33,7 @@ def main():
             img_array = cv2.imread(f"{img_dir}/{img}")
             img_array = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
             img_array = np.array(img_array)
-
+            print(img_array[0:2])
             # Create texture
             # Sample central pixel values and get average
             height, width, channels = img_array.shape

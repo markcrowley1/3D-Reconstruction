@@ -20,10 +20,9 @@ class MESH:
         # Load point cloud and estimate normals
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(point_set)
-        pcd.estimate_normals()
         # Estimate mesh from point cloud
         mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(
-            pcd, 0.07)
+            pcd, 0.06)
         return mesh
     
     def process_mesh(

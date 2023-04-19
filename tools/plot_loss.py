@@ -9,10 +9,10 @@ def main():
     filename = sys.argv[1]
     file = open(filename, "rb")
     data = pickle.load(file)
-    loss = data["loss"]
-
-    print(len(loss[60:]))
-    plt.plot(range(60, 300), loss[60:])
+    train_loss, val_loss = data["loss"], data["val_loss"]
+    plt.plot(range(len(train_loss)), train_loss, label='Training Loss')
+    plt.plot(range(len(train_loss)), val_loss, label='Validation Loss')
+    plt.legend(loc="best")
     plt.xlabel('Epochs')
     plt.ylabel('Chamfer Distance')
     plt.title('Plot of Chamfer Distance vs Epochs')

@@ -119,7 +119,7 @@ def main():
     category_info = parse_category_info(CATEGORIES, COUNT,
                                         "./training/category_info.json")
     paired_data = []
-    for cat_info in category_info:
+    for i, cat_info in enumerate(category_info):
         # Unpack info for specific category
         count, render_base_dir, model_base_dir = cat_info
         # Get names of subdirs containing models and randomly select COUNT models
@@ -127,7 +127,7 @@ def main():
         random.shuffle(dir_names)
         dir_names = dir_names[:count]
         
-        for dir_name in dir_names:
+        for j, dir_name in enumerate(dir_names):
             # Handle paths
             render_dir = f"{render_base_dir}/{dir_name}/rendering"
             model_filename = f"{model_base_dir}/{dir_name}/models/model_normalized.obj"
@@ -149,6 +149,8 @@ def main():
                     rotation = [0, -data[1], -data[2]]
                     points = rotate(base_points, rotation)
                     paired_data.append([img_array, points])
+                # Progress message
+                print(f"{i+1}th category --- {j+1}/{count}")
             except:
                 pass
 

@@ -3,6 +3,7 @@ Description:
     Class handles point set generation from input image.
 """
 import cv2
+import pickle
 import numpy as np
 from keras import models
 from tensorflow_graphics.nn import loss

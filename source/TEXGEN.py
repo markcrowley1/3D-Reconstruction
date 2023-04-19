@@ -33,6 +33,6 @@ class TEXGEN:
         tex = np.dstack((tex_b, tex_g, tex_r))
         return tex
     
-    def save_texture(self, texture: np.ndarray, outfile: str):
+    def save_img(self, texture: np.ndarray, outfile: str):
         cv2.imwrite(outfile, texture)
         return
